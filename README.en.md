@@ -6,6 +6,8 @@ A small add-on for the [DeepSeek Harness](https://github.com/deepseek-ai/deepsee
 
 > `Precise cache hit 99.87654%`
 
+![Screenshot](docs/screenshot.png)
+
 ## What problem does it solve?
 
 The built-in stats bar **rounds** the cache-hit rate to a whole number: once the real rate reaches 99.5%, it displays `100%`.
