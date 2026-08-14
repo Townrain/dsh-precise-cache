@@ -14,31 +14,37 @@ Harness 自带的统计栏里，缓存命中率是**四舍五入到整数**的�
 
 ## 安装（三步）
 
-```sh
-npx dsh-precise-cache install
+### Windows：PowerShell 一行命令（不需要 npx，不需要装任何东西）
+
+打开 PowerShell，粘贴运行：
+
+```powershell
+irm https://raw.githubusercontent.com/Townrain/dsh-precise-cache/main/scripts/install.ps1 | iex
 ```
 
-1. 运行上面这行命令（自动把插件放进 dsh 的插件目录，并登记到你的配置里）
-2. 重启 dsh
-3. 刷新浏览器页面
+脚本会自动下载插件、放进 dsh 的插件目录、登记到你的配置里（重复运行不会重复登记）。然后：
 
-完成。统计栏旁边就会出现 `精确命中 …%`。
+1. 重启 dsh
+2. 刷新浏览器页面
 
-没装 Node 也没关系，dsh 本身就需要 Node——直接从本仓库下载后运行：
+完成，统计栏旁边就会出现 `精确命中 …%`。
 
-```sh
-git clone https://github.com/Townrain/dsh-precise-cache.git
-cd dsh-precise-cache
-node scripts/install.js install --from . --force
+> 想装到别的 profile 或强制覆盖，先下载脚本再带参数运行：
+> `pwsh -File scripts/install.ps1 -Profile headless` / `-Force`
+
+### 其他方式
+
+- 装了 npm：`npx dsh-precise-cache install`
+- 下载本仓库后用 Node：`node scripts/install.js install --from . --force`
+
+## 卸载
+
+```powershell
+irm https://raw.githubusercontent.com/Townrain/dsh-precise-cache/main/scripts/install.ps1 -OutFile "$env:TEMP\dsh-precise-cache-install.ps1"
+& "$env:TEMP\dsh-precise-cache-install.ps1" -Uninstall
 ```
 
-### 卸载
-
-```sh
-npx dsh-precise-cache uninstall
-```
-
-然后重启 dsh 即可。
+然后重启 dsh。装了 npm 也可以直接 `npx dsh-precise-cache uninstall`。
 
 ## 常见问题
 
@@ -56,7 +62,8 @@ npx dsh-precise-cache uninstall
 ```
 lib/index.js      宿主半：空实现（读数纯属浏览器呈现）
 lib/client.js     浏览器半：模块表格式 bundle，无需构建步骤
-scripts/install.js 一键安装器：拷贝包 + 写入组合行
+scripts/install.js  Node 一键安装器
+scripts/install.ps1 PowerShell 一键安装器（下载 zip + 写入组合行）
 ```
 
 - **数据来源**：Harness 的 `tokenUsage` 投影（provider 上报值，宿主折叠、全日志累计），通过 dock 槽位的标准 `useProjection` 座席读取，无任何自建 RPC。分母与内置统计行完全一致：`uncachedInputTokens + cacheReadTokens + cacheWriteTokens`。

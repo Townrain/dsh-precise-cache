@@ -14,31 +14,37 @@ This plugin uses the **exact same data** the built-in line uses — it just **ne
 
 ## Install (three steps)
 
-```sh
-npx dsh-precise-cache install
+### Windows: one PowerShell line (no npx, nothing to install)
+
+Open PowerShell, paste and run:
+
+```powershell
+irm https://raw.githubusercontent.com/Townrain/dsh-precise-cache/main/scripts/install.ps1 | iex
 ```
 
-1. Run the command above (it copies the plugin into dsh's plugin folder and registers it in your config)
-2. Restart dsh
-3. Refresh the browser page
+The script downloads the plugin, places it into dsh's plugin folder, and registers it in your config (running it twice does not double-register). Then:
+
+1. Restart dsh
+2. Refresh the browser page
 
 Done. `Precise cache hit …%` appears beside the stats bar.
 
-Installing from a local clone works too (dsh needs Node anyway):
+> For another profile or a forced re-copy, download the script first and pass options:
+> `pwsh -File scripts/install.ps1 -Profile headless` / `-Force`
 
-```sh
-git clone https://github.com/Townrain/dsh-precise-cache.git
-cd dsh-precise-cache
-node scripts/install.js install --from . --force
+### Other ways
+
+- With npm: `npx dsh-precise-cache install`
+- After downloading this repo, with Node: `node scripts/install.js install --from . --force`
+
+## Uninstall
+
+```powershell
+irm https://raw.githubusercontent.com/Townrain/dsh-precise-cache/main/scripts/install.ps1 -OutFile "$env:TEMP\dsh-precise-cache-install.ps1"
+& "$env:TEMP\dsh-precise-cache-install.ps1" -Uninstall
 ```
 
-### Uninstall
-
-```sh
-npx dsh-precise-cache uninstall
-```
-
-Then restart dsh.
+Then restart dsh. With npm: `npx dsh-precise-cache uninstall`.
 
 ## FAQ
 
@@ -56,7 +62,8 @@ Then restart dsh.
 ```
 lib/index.js       host half: empty (the readout is pure browser presentation)
 lib/client.js      browser half: module-table bundle, no build step
-scripts/install.js one-shot installer: copy the package + write the row
+scripts/install.js  Node installer
+scripts/install.ps1 PowerShell installer (downloads the zip + writes the row)
 ```
 
 - **Data source**: the harness `tokenUsage` projection (provider-reported values, host-folded over the whole log), read through the dock slot's standard `useProjection` seat — no custom RPC. The denominator matches the shipped stats line: `uncachedInputTokens + cacheReadTokens + cacheWriteTokens`.
