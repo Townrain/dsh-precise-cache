@@ -2,42 +2,29 @@
 
 [简体中文](README.md) | English
 
-A **five-decimal cache-hit readout** for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web GUI: one extra line beside the chat stats band under the composer, showing `Precise cache hit XX.XXXXX%`.
+A small add-on for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness): one extra line beside the stats bar under the chat input, showing the **cache-hit rate to five decimal places**, like this:
 
-## Why
+> `Precise cache hit 99.87654%`
 
-The built-in stats line rounds the cache-hit rate to an **integer**, so any real rate at or above 99.5% displays as `100%`. This plugin uses the **same denominator** the shipped line uses — cache reads over the three disjoint billed buckets (`uncachedInputTokens + cacheReadTokens + cacheWriteTokens`) — but **never rounds**, keeping five fixed decimals so near-100% hit rates show their true value. The figure rides the durable whole-log `tokenUsage` projection, so paging, compaction, and reloads cannot change it; it hides while no input has been billed.
+## What problem does it solve?
 
-## Features
+The built-in stats bar **rounds** the cache-hit rate to a whole number: once the real rate reaches 99.5%, it displays `100%`.
 
-- One-line readout beside the shipped stats line, matching its visual system (12px tertiary text, centered, ellipsized)
-- Five fixed decimals, no rounding
-- Bilingual zh/en, following the harness locale (`preciseCache` dictionary namespace)
-- Zero host code: pure browser presentation; no Service, tool, or prompt contribution
-- Fully reversible: the slot entry, dictionaries, and style tag are all cleaned up on stop/update
+This plugin uses the **exact same data** the built-in line uses — it just **never rounds**, showing the real number instead.
 
-## Install
+## Install (three steps)
 
 ```sh
 npx dsh-precise-cache install
 ```
 
-The installer idempotently:
+1. Run the command above (it copies the plugin into dsh's plugin folder and registers it in your config)
+2. Restart dsh
+3. Refresh the browser page
 
-1. Copies the package to `$DSH_HOME/profiles/node_modules/dsh-precise-cache` (the dsh plugin resolution root)
-2. Writes the composition row into `$DSH_HOME/profiles/<profile>/cordis.patch.yml`
+Done. `Precise cache hit …%` appears beside the stats bar.
 
-Then **restart dsh and refresh the browser page** — the restart is the only manual step.
-
-Options:
-
-| Option | Meaning |
-| --- | --- |
-| `--profile <name>` | Target profile (default `web`) |
-| `--force` | Re-copy over an installed package |
-| `--from <dir>` | Install from a local source directory (after `git clone`) |
-
-Install from source:
+Installing from a local clone works too (dsh needs Node anyway):
 
 ```sh
 git clone https://github.com/Townrain/dsh-precise-cache.git
@@ -45,15 +32,26 @@ cd dsh-precise-cache
 node scripts/install.js install --from . --force
 ```
 
-## Uninstall
+### Uninstall
 
 ```sh
 npx dsh-precise-cache uninstall
 ```
 
-Or manually: delete `$DSH_HOME/profiles/node_modules/dsh-precise-cache`, remove the `name: dsh-precise-cache` insert row from `cordis.patch.yml`, then restart dsh. You can also disable the plugin from the harness settings plugin inventory.
+Then restart dsh.
 
-## How it works
+## FAQ
+
+**I installed it but I don't see the line?** It only shows once the session has some billed input — before that it hides itself on purpose. Send a message and look again.
+
+**Does it slow dsh down or change billing?** No. It only reads statistics dsh already computes; it makes no requests and changes no numbers.
+
+**Why five decimals?** That was the original motivation: fewer digits make it easier to fall back into the rounding illusion.
+
+<details>
+<summary>Technical details (for developers)</summary>
+
+### How it works
 
 ```
 lib/index.js       host half: empty (the readout is pure browser presentation)
@@ -61,17 +59,19 @@ lib/client.js      browser half: module-table bundle, no build step
 scripts/install.js one-shot installer: copy the package + write the row
 ```
 
-- **Data source**: the harness `tokenUsage` projection (provider-reported values, host-folded over the whole log), read through the dock slot's standard `useProjection` seat — no custom RPC.
+- **Data source**: the harness `tokenUsage` projection (provider-reported values, host-folded over the whole log), read through the dock slot's standard `useProjection` seat — no custom RPC. The denominator matches the shipped stats line: `uncachedInputTokens + cacheReadTokens + cacheWriteTokens`.
 - **Loading contract**: `package.json` declares `dsh.client.platform = "web"` plus `inject` edges; the host scanner emits a `window.__DSH_BOOT__` graph row and mounts the `/plugins/dsh-precise-cache/client.js` route. The browser half registers through `window.__ModuleLoader__.load({ id, factory })` — the `id` is the package name, and the factory returns `{ apply, inject }`.
 - **UI entry**: registered through `ctx.slots.inject('conversation.composer.dock', …)` as a fresh list id after the shipped `stats` entry; copy rides the `locale: 'preciseCache'` seat, and the `<style>` tag carries `data-plugin` ownership so the module loader reclaims it on unload.
 - **Update boundary**: `lib/client.js` changes apply on page refresh; `dsh.client` declaration changes need a dsh restart.
 
-## Development
+### Development
 
 ```sh
 npm run check          # node --check syntax validation
 npm run install:local  # local install smoke test
 ```
+
+</details>
 
 ## License
 
