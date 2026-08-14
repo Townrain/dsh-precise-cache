@@ -1,0 +1,48 @@
+{
+  "name": "dsh-precise-cache",
+  "version": "0.1.0",
+  "description": "Five-decimal cache-hit readout beside the chat stats line for the DeepSeek Harness Web GUI",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "dsh-precise-cache": "scripts/install.js"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "scripts/install.js",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "cordis",
+    "plugin",
+    "cache-hit",
+    "cache",
+    "token",
+    "usage"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "check": "node --check lib/index.js && node --check lib/client.js && node --check scripts/install.js",
+    "install:local": "node scripts/install.js install --from ."
+  }
+}
